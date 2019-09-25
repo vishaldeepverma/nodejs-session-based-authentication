@@ -7,6 +7,7 @@ const app = express();
 
 let { PORT = 3000, SESSION_NAME = "sid" } = process.env;
 
+//session middleware
 app.use(
   session({
     name: SESSION_NAME,
@@ -18,22 +19,24 @@ app.use(
   })
 );
 
+//body-parser middleware
 app.use(
   bodyParser.urlencoded({
     extended: true
   })
 );
 
+// redirectlogin middleware
 const redirectLogin = (req, res, next) => {
-  console.log(req.session.userId);
+  //console.log(req.session.userId);
   if (!req.session.userId) {
-    console.log("i am here");
     return res.redirect("/login");
   } else {
     next();
   }
 };
 
+// redirectHome middleware
 const redirectHome = (req, res, next) => {
   if (req.session.userId) {
     return res.redirect("/home");
@@ -42,6 +45,7 @@ const redirectHome = (req, res, next) => {
   }
 };
 
+//landing page
 app.get("/", (req, res) => {
   let { userId } = req.session;
 
@@ -64,6 +68,7 @@ app.get("/", (req, res) => {
   );
 });
 
+//login page
 app.get("/login", redirectHome, (req, res) => {
   res.send(
     `<a href="/register">Register</a><br><br> 
@@ -75,9 +80,10 @@ app.get("/login", redirectHome, (req, res) => {
   );
 });
 
+// login form submit
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  console.log(email, password);
+  //console.log(email, password);
 
   //check in database
   const user = database.find(
@@ -85,7 +91,7 @@ app.post("/login", (req, res) => {
   );
 
   if (user) {
-    console.log("valid user", user.id);
+    //console.log("valid user", user.id);
     req.session.userId = user.id;
     return res.redirect(`/home`);
   } else {
@@ -93,6 +99,7 @@ app.post("/login", (req, res) => {
   }
 });
 
+//register page
 app.get("/register", redirectHome, (req, res) => {
   res.send(
     `<a href="/">Login</a><br><br>
@@ -112,9 +119,11 @@ app.get("/register", redirectHome, (req, res) => {
   );
 });
 
+// sumbit register form
 app.post("/register", redirectHome, (req, res) => {
   const { name, email, password, ocupation, date } = req.body;
-  console.log(name, email, password, ocupation, date);
+  //console.log(name, email, password, ocupation, date);
+  // validation
   if (name && email && password && ocupation && date) {
     const status = database.some(
       element => element.email === email && element.password === password
@@ -134,6 +143,7 @@ app.post("/register", redirectHome, (req, res) => {
   }
 });
 
+//home page after authentication
 app.get("/home", redirectLogin, (req, res) => {
   return res.send(
     `<h1>This is Home page</h1>
@@ -144,15 +154,19 @@ app.get("/home", redirectLogin, (req, res) => {
   );
 });
 
+//logout form submit
 app.post("/logout", redirectLogin, (req, res) => {
   req.session.destroy(error => {
-    console.log(error);
-    return res.redirect("/home");
+    //console.log(error);
+    if (error) {
+      return res.redirect("/home");
+    }
   });
 
-  console.log("logged out");
+  //console.log("logged out");
 
-  //res.clearCookie(SESSION_NAME);
+  res.clearCookie(SESSION_NAME);
+  res.redirect("/login");
 });
 
 app.listen(PORT, () => {
