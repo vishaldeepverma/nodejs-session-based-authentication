@@ -36,6 +36,7 @@ const redirectLogin = (req, res, next) => {
   }
 };
 
+//middleware to store profile data and use it in further routes
 app.use((req, res, next) => {
   const { userId } = req.session;
 
