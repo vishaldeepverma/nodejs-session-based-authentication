@@ -36,6 +36,17 @@ const redirectLogin = (req, res, next) => {
   }
 };
 
+app.use((req, res, next) => {
+  const { userId } = req.session;
+
+  if (userId) {
+    res.locals.user = database.find(
+      element => element.id === req.session.userId
+    );
+  }
+  next();
+});
+
 // redirectHome middleware
 const redirectHome = (req, res, next) => {
   if (req.session.userId) {
@@ -145,8 +156,12 @@ app.post("/register", redirectHome, (req, res) => {
 
 //home page after authentication
 app.get("/home", redirectLogin, (req, res) => {
+  const { user } = res.locals;
   return res.send(
     `<h1>This is Home page</h1>
+    Name:${user.name}<br/>
+    Email:${user.email}<br/>
+
     <form action="/logout" method="POST">
     <input type="submit" value="logout">
     </form>
